@@ -12,11 +12,14 @@
 
 const char* SHM_NAME = "/ROBOSHM";
 const int SHM_SIZE = 32000;
+const int data_offset = sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
 static int shm_fd_ = -1;
 
-int shm_fd() {
-    if (shm_fd_ != -1) {
-        return shm_fd_;
+void* shm_addr() {
+    static void* shm_addr = NULL;
+
+    if (shm_addr) {
+        return shm_addr;
     }
 
     int lockfile = open("/tmp/roboshm.init.lock", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
@@ -30,36 +33,38 @@ int shm_fd() {
     shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR);
     if (shm_fd_ != -1) { 
         printf("Initing shm...\n");
+
+        int rc = ftruncate(shm_fd_, SHM_SIZE);
+        if (rc == -1) {
+            return NULL;
+        }
+
+        shm_addr = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
+        
+        printf("Making my mutex");
+
+        pthread_mutex_t* mutex = (pthread_mutex_t*) shm_addr;
+        pthread_mutexattr_t* mutexattr = (pthread_mutexattr_t*) (shm_addr + sizeof(pthread_mutex_t));
+        pthread_mutexattr_init(mutexattr);
+        pthread_mutexattr_setpshared(mutexattr, PTHREAD_PROCESS_SHARED);
+        pthread_mutexattr_setrobust(mutexattr, PTHREAD_MUTEX_ROBUST);
+        pthread_mutex_init(mutex, mutexattr);
+
         printf("Done with stuff, spinning\n");
-        sleep(10);
     }
     else if (errno == EEXIST) {
         shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+
+        shm_addr = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
         printf("Shm already exists, using that instance\n");
     }
     else {
         printf("Encountered fd unknown error %d\n", errno);
+        return NULL;
     }
 
     flock(lockfile, LOCK_UN);
     printf("Unlocked\n");
-    return shm_fd_;
-}
-
-void* shm_addr() {
-    static void* shm_addr = NULL;
-
-    if (shm_addr) {
-        return shm_addr;
-    }
-
-    int fd = shm_fd();
-    int rc = ftruncate(fd, SHM_SIZE);
-    if (rc == -1) {
-        return NULL;
-    }
-
-    shm_addr = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     return shm_addr;
 }
 
@@ -68,8 +73,14 @@ bool shm_place(int val) {
     if (!addr) { 
         return false;
     }
-    addr[0] = val;
+    printf("taking lock\n");
+    pthread_mutex_lock((pthread_mutex_t*)addr);
+    printf("taken lock\n");
+    addr[1000] = val;
     printf("Placing...\n");
+    sleep(10);
+    pthread_mutex_unlock((pthread_mutex_t*)addr);
+    printf("released lock\n");
     return true;
 }
 
@@ -78,7 +89,15 @@ int shm_get() {
     if (!addr) {
         return -1;
     }
-    return addr[0];
+    int ret;
+    printf("taking lock\n");
+    pthread_mutex_lock((pthread_mutex_t*)addr);
+    printf("taken lock\n");
+    ret = addr[1000];
+    sleep(10);
+    pthread_mutex_unlock((pthread_mutex_t*)addr);
+    printf("released lock\n");
+    return ret;
 }
 
 void shm_close() {
