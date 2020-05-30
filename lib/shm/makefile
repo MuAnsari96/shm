@@ -2,11 +2,11 @@ all: writer reader
 
 .PHONY: writer
 writer: libshm.so writer.c
-	gcc -o writer -I. writer.c -L. -lshm -lrt -lpthread -Werror
+	gcc -o writer -I. writer.c hashmap.c -L. -lshm -lrt -lpthread -Werror
 
 .PHONY: reader
 reader: libshm.so reader.c
-	gcc -o reader -I./ reader.c -L./ -lshm -lrt -lpthread -Werror
+	gcc -o reader -I./ reader.c hashmap.c -L./ -lshm -lrt -lpthread -Werror
 
 .PHONY: libshm.so
 libshm.so: shm.c shm.h
