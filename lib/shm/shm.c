@@ -11,9 +11,13 @@
 #include "shm.h"
 
 const char* SHM_NAME = "/ROBOSHM";
-const int SHM_SIZE = 32000;
-const int data_offset = sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
+const int SHM_ELEMENT_COUNT = 32000;
+
 static int shm_fd_ = -1;
+
+int shm_effective_size() {
+    return SHM_ELEMENT_COUNT*sizeof(int) + sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
+}
 
 void* shm_addr() {
     static void* shm_addr = NULL;
@@ -34,17 +38,17 @@ void* shm_addr() {
     if (shm_fd_ != -1) { 
         printf("Initing shm...\n");
 
-        int rc = ftruncate(shm_fd_, SHM_SIZE);
+        int rc = ftruncate(shm_fd_, shm_effective_size());
         if (rc == -1) {
             return NULL;
         }
 
-        shm_addr = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
+        shm_addr = mmap(NULL, shm_effective_size(), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
         
         printf("Making my mutex");
 
         pthread_mutex_t* mutex = (pthread_mutex_t*) shm_addr;
-        pthread_mutexattr_t* mutexattr = (pthread_mutexattr_t*) (shm_addr + sizeof(pthread_mutex_t));
+        pthread_mutexattr_t* mutexattr = (pthread_mutexattr_t*) (((char*)shm_addr) + sizeof(pthread_mutex_t));
         pthread_mutexattr_init(mutexattr);
         pthread_mutexattr_setpshared(mutexattr, PTHREAD_PROCESS_SHARED);
         pthread_mutexattr_setrobust(mutexattr, PTHREAD_MUTEX_ROBUST);
@@ -55,7 +59,7 @@ void* shm_addr() {
     else if (errno == EEXIST) {
         shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
 
-        shm_addr = mmap(NULL, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
+        shm_addr = mmap(NULL, shm_effective_size(), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
         printf("Shm already exists, using that instance\n");
     }
     else {
@@ -68,6 +72,11 @@ void* shm_addr() {
     return shm_addr;
 }
 
+int* map_addr() {
+    const int offset = sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
+    return (int*)(((char*)shm_addr()) + offset);
+}
+
 bool shm_place(int val) {
     int* addr = (int*)shm_addr();
     if (!addr) { 
@@ -76,7 +85,7 @@ bool shm_place(int val) {
     printf("taking lock\n");
     pthread_mutex_lock((pthread_mutex_t*)addr);
     printf("taken lock\n");
-    addr[1000] = val;
+    map_addr()[0] = val;
     printf("Placing...\n");
     sleep(10);
     pthread_mutex_unlock((pthread_mutex_t*)addr);
@@ -93,7 +102,7 @@ int shm_get() {
     printf("taking lock\n");
     pthread_mutex_lock((pthread_mutex_t*)addr);
     printf("taken lock\n");
-    ret = addr[1000];
+    ret = map_addr()[0];
     sleep(10);
     pthread_mutex_unlock((pthread_mutex_t*)addr);
     printf("released lock\n");
@@ -101,7 +110,7 @@ int shm_get() {
 }
 
 void shm_close() {
-    munmap(shm_addr(), SHM_SIZE);
+    munmap(shm_addr(), shm_effective_size());
     close(shm_fd_);
     shm_unlink(SHM_NAME);
 }
