@@ -18,7 +18,7 @@ MapValue* get_value_addr(const char key[], const void* map_start_addr, const con
     while(true) {
         map_value = &map_addr[index];
 
-        if (map_value->is_valid && strcmp(map_value->key, key)) {
+        if (map_value->is_valid && (strcmp(map_value->key, key) == 0)) {
             return map_value;
         }
 
@@ -53,7 +53,7 @@ MapValue* add_int_value(const char key[], int value, const void* map_start_addr,
             return map_value;
         }
 
-        if (map_value->is_valid && strcmp(map_value->key, key)) {
+        if (map_value->is_valid && (strcmp(map_value->key, key) == 0)) {
             return NULL;
         }
 

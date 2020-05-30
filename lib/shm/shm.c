@@ -9,14 +9,12 @@
 #include <unistd.h>
 
 #include "shm.h"
-
-const char* SHM_NAME = "/ROBOSHM";
-const int SHM_ELEMENT_COUNT = 32000;
+#include "hashmap.h"
 
 static int shm_fd_ = -1;
 
 int shm_effective_size() {
-    return SHM_ELEMENT_COUNT*sizeof(int) + sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
+    return SHM_ELEMENT_COUNT*sizeof(MapValue) + sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
 }
 
 void* shm_addr() {
@@ -32,12 +30,8 @@ void* shm_addr() {
     }
     flock(lockfile, LOCK_EX);
 
-    printf("LOCKED FILE\n");
-
     shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR);
     if (shm_fd_ != -1) { 
-        printf("Initing shm...\n");
-
         int rc = ftruncate(shm_fd_, shm_effective_size());
         if (rc == -1) {
             return NULL;
@@ -45,8 +39,6 @@ void* shm_addr() {
 
         shm_addr = mmap(NULL, shm_effective_size(), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
         
-        printf("Making my mutex");
-
         pthread_mutex_t* mutex = (pthread_mutex_t*) shm_addr;
         pthread_mutexattr_t* mutexattr = (pthread_mutexattr_t*) (((char*)shm_addr) + sizeof(pthread_mutex_t));
         pthread_mutexattr_init(mutexattr);
@@ -54,7 +46,6 @@ void* shm_addr() {
         pthread_mutexattr_setrobust(mutexattr, PTHREAD_MUTEX_ROBUST);
         pthread_mutex_init(mutex, mutexattr);
 
-        printf("Done with stuff, spinning\n");
     }
     else if (errno == EEXIST) {
         shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
@@ -68,45 +59,24 @@ void* shm_addr() {
     }
 
     flock(lockfile, LOCK_UN);
-    printf("Unlocked\n");
     return shm_addr;
 }
 
-int* map_addr() {
+void* map_addr() {
     const int offset = sizeof(pthread_mutex_t) + sizeof(pthread_mutexattr_t);
-    return (int*)(((char*)shm_addr()) + offset);
+    return (((char*)shm_addr()) + offset);
 }
 
-bool shm_place(int val) {
+void lock_shm() {
     int* addr = (int*)shm_addr();
-    if (!addr) { 
-        return false;
-    }
-    printf("taking lock\n");
     pthread_mutex_lock((pthread_mutex_t*)addr);
-    printf("taken lock\n");
-    map_addr()[0] = val;
-    printf("Placing...\n");
-    sleep(10);
-    pthread_mutex_unlock((pthread_mutex_t*)addr);
-    printf("released lock\n");
-    return true;
+    printf("SHM is locked!\n");
 }
 
-int shm_get() {
+void unlock_shm() {
     int* addr = (int*)shm_addr();
-    if (!addr) {
-        return -1;
-    }
-    int ret;
-    printf("taking lock\n");
-    pthread_mutex_lock((pthread_mutex_t*)addr);
-    printf("taken lock\n");
-    ret = map_addr()[0];
-    sleep(10);
     pthread_mutex_unlock((pthread_mutex_t*)addr);
-    printf("released lock\n");
-    return ret;
+    printf("SHM is unlocked!\n");
 }
 
 void shm_close() {
