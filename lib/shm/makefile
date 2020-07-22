@@ -2,11 +2,11 @@ all: writer reader
 
 .PHONY: writer
 writer: libshm.so writer.c
-	gcc -o writer -I. writer.c -L. -lshm -lrt -lpthread -Werror
+	gcc -o writer.out -I. writer.c -L. -lshm -lrt -lpthread -Werror
 
 .PHONY: reader
 reader: libshm.so reader.c
-	gcc -o reader -I./ reader.c -L./ -lshm -lrt -lpthread -Werror
+	gcc -o reader.out -I./ reader.c -L./ -lshm -lrt -lpthread -Werror
 
 .PHONY: libshm.so
 libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
@@ -18,11 +18,11 @@ libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
 
 .PHONY: run_reader
 run_reader:
-	LD_LIBRARY_PATH=. ./reader
+	LD_LIBRARY_PATH=. ./reader.out
 
 .PHONY: run_writer
 run_writer:
-	LD_LIBRARY_PATH=. ./writer
+	LD_LIBRARY_PATH=. ./writer.out
 
 .PHONY: full_run_reader
 full_run_reader: reader
@@ -35,6 +35,6 @@ full_run_writer: writer
 
 .PHONY: clean
 clean: 
-	rm -f writer reader *.o *.so *.gch
+	rm -f *.out *.o *.so *.gch
 
 .PHONY: all

@@ -1,0 +1,5 @@
+# Build Artifacts
+*.o
+*.so
+*.gch
+*.out
