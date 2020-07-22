@@ -3,8 +3,8 @@
 
 #include <stdbool.h>
 
-const char* SHM_NAME = "/ROBOSHM";
-const int SHM_ELEMENT_COUNT = 32000;
+extern const char* SHM_NAME;
+extern const int SHM_ELEMENT_COUNT;
 
 void lock_shm();
 void unlock_shm();

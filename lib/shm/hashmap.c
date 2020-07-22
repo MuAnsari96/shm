@@ -83,5 +83,6 @@ unsigned long hash(const char str[], const int element_count) {
         i++;
     }
 
+    printf("%lu is the hash\n", hash % element_count);
     return hash % element_count;
 }

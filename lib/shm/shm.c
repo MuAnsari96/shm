@@ -11,6 +11,9 @@
 #include "shm.h"
 #include "hashmap.h"
 
+const char* SHM_NAME = "/ROBOSHM";
+const int SHM_ELEMENT_COUNT = 32000;
+
 static int shm_fd_ = -1;
 
 int shm_effective_size() {
