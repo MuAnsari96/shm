@@ -29,12 +29,13 @@ void* shm_addr() {
 
     int lockfile = open("/tmp/roboshm.init.lock", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
     if (lockfile == -1) {
-        printf("Encountered error acquiring lock. Errcode %d\n", errno);
+        printf("Encountered error acquiring lockfile. Errcode %d\n", errno);
     }
     flock(lockfile, LOCK_EX);
 
     shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR);
     if (shm_fd_ != -1) { 
+        // TODO Factor out into an init
         int rc = ftruncate(shm_fd_, shm_effective_size());
         if (rc == -1) {
             return NULL;

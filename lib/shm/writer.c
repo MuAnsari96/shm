@@ -21,5 +21,4 @@ int main(int argc, char* argv[]) {
 
     printf("Map at %p, enetered at %p", map_addr(), map_value1);
     printf("Map at %p, enetered at %p", map_addr(), map_value2);
-
 }
