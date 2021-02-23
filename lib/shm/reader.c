@@ -2,14 +2,11 @@
 
 #include "shm.h"
 #include "hashmap.h"
+#include "shm_hashmap.h"
 
 int main(int argc, char* argv[]) {
-    lock_shm();
-
-    MapValue* ret1 = get_value_addr("bc", map_addr(), SHM_ELEMENT_COUNT);
-    MapValue* ret2 = get_value_addr("cB", map_addr(), SHM_ELEMENT_COUNT);
-
-    unlock_shm();
+    MapValue* ret1 = get_map_value("bc");
+    MapValue* ret2 = get_map_value("cB");
 
     printf("Map at %p, enetered at %p\n", map_addr(), ret1);
     printf("%d\n", ret1->value.int_value);

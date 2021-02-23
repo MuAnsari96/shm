@@ -6,6 +6,7 @@
 // GENERIC HASHAMP STUFF
 // This module provides a generic API for hashmap operations given a memory buffer we want to use
 
+// TODO Add rw lock in value
 typedef struct ValueType {
     bool is_int;
     bool is_float;
@@ -26,11 +27,18 @@ typedef struct MapValue {
     ValueType value;
 } MapValue;
 
+// init
+MapValue* init_int_map_var(const char key[], const int value, const void* map_start_addr, const int element_count);
+MapValue* init_float_map_var(const char key[], const float value, const void* map_start_addr, const int element_count);
+MapValue* init_bool_map_var(const char key[], const bool value, const void* map_start_addr, const int element_count);
+MapValue* init_char_map_var(const char key[], const char value[], const void* map_start_addr, const int element_count);
 
-// TODO Change workflow from this to add, update, set, get, contains 
-MapValue* get_value_addr(const char key[], const void* map_start_addr, const int element_count);
-MapValue* add_int_value(const char key[], int value, const void* map_start_addr, const int element_count);
-// TODO Add support for other primitives
+// get
+MapValue* get_map_var(const char key[], const void* map_start_addr, const int element_count);
+
+// delete
+bool delete_map_var(const char key[], const void* map_start_addr, const int element_count);
+
 void init_map(const void* map_start_addr, const int element_count);
 unsigned long hash(const char str[], const int element_count);
 
