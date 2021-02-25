@@ -112,8 +112,9 @@ MapValue* init_char_map_var(const char key[], const char value[], const void* ma
         map_value = &map_addr[index];
 
         if (!map_value->is_valid) {
-            // TODO This is super unsafe, i should strcpy this
             ValueType value_type = {false, false, false, true, 0, 0, false, "\0"};
+            strncpy(value_type.char_value, value, 7);
+            value_type.char_value[7] = 0;
             strcpy(map_value->key, key);
             map_value->is_valid = true;
             map_value->is_deleted = false;
@@ -210,6 +211,5 @@ unsigned long hash(const char str[], const int element_count) {
         i++;
     }
 
-    printf("%lu is the hash\n", hash % element_count);
     return hash % element_count;
 }

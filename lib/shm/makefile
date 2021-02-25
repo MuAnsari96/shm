@@ -1,12 +1,4 @@
-all: writer reader
-
-.PHONY: writer
-writer: libshm.so writer.c
-	gcc -o writer.out -I. writer.c -L. -lshm -lrt -lpthread -Werror
-
-.PHONY: reader
-reader: libshm.so reader.c
-	gcc -o reader.out -I./ reader.c -L./ -lshm -lrt -lpthread -Werror
+all: libshm.so
 
 .PHONY: libshm.so
 libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
@@ -15,6 +7,30 @@ libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
 	gcc -std=gnu99 -c -fPIC -Werror shm_hashmap.c shm_hashmap.h
 	gcc -fPIC -shared -o libshm.so shm.o hashmap.o shm_hashmap.o
 	rm -f /dev/shm/ROBOSHM
+
+.PHONY: test
+test: libshm.so
+	g++ -o test/hashmap.t.out -I. -Itest/ test/hashmap.t.cc -L. -lshm -lrt -lpthread -lgtest -lgtest_main -Werror
+
+.PHONY: run_test
+run_test: test reset_shm
+	LD_LIBRARY_PATH=. ./test/hashmap.t.out
+
+.PHONY: reset_shm
+reset_shm:
+	rm -f /dev/shm/ROBOSHM
+
+.PHONY: clean
+clean: 
+	rm -f *.out *.o *.so *.gch test/*.out /dev/shm/ROBOSHM
+
+.PHONY: writer
+writer: libshm.so writer.c
+	gcc -o writer.out -I. writer.c -L. -lshm -lrt -lpthread -Werror
+
+.PHONY: reader
+reader: libshm.so reader.c
+	gcc -o reader.out -I./ reader.c -L./ -lshm -lrt -lpthread -Werror
 
 .PHONY: run_reader
 run_reader:
@@ -31,10 +47,5 @@ full_run_reader: reader
 .PHONY: full_run_writer
 full_run_writer: writer
 	LD_LIBRARY_PATH=. ./writer
-
-
-.PHONY: clean
-clean: 
-	rm -f *.out *.o *.so *.gch
 
 .PHONY: all
