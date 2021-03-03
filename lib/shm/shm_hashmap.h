@@ -24,8 +24,4 @@ bool contains_key(const char key[]);
 // delete
 bool delete_key(const char key[]);
 
-int get_int_value(const char key[]);
-bool set_int_value(const char key[], int value);
-bool register_int_value(const char key[], int value);
-
 #endif

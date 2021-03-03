@@ -16,6 +16,7 @@ void unlock_shm();
 // TODO Groups tree addr
 void* map_addr();
 
+void shm_init();
 void shm_close();
 
 #endif

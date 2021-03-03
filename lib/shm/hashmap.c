@@ -20,7 +20,8 @@ MapValue* init_int_map_var(const char key[], const int value, const void* map_st
 
         if (!map_value->is_valid) {
             ValueType value_type = {true, false, false, false, value, 0, false, "\0"};
-            strcpy(map_value->key, key);
+            strncpy(map_value->key, key, HASHMAP_KEY_SIZE-1);
+            map_value->key[HASHMAP_KEY_SIZE-1] = 0;
             map_value->is_valid = true;
             map_value->is_deleted = false;
             map_value->value = value_type;
@@ -51,7 +52,8 @@ MapValue* init_float_map_var(const char key[], const float value, const void* ma
 
         if (!map_value->is_valid) {
             ValueType value_type = {false, true, false, false, 0, value, false, "\0"};
-            strcpy(map_value->key, key);
+            strncpy(map_value->key, key, HASHMAP_KEY_SIZE-1);
+            map_value->key[HASHMAP_KEY_SIZE-1] = 0;
             map_value->is_valid = true;
             map_value->is_deleted = false;
             map_value->value = value_type;
@@ -82,7 +84,8 @@ MapValue* init_bool_map_var(const char key[], const bool value, const void* map_
 
         if (!map_value->is_valid) {
             ValueType value_type = {false, false, true, false, 0, 0, value, "\0"};
-            strcpy(map_value->key, key);
+            strncpy(map_value->key, key, HASHMAP_KEY_SIZE-1);
+            map_value->key[HASHMAP_KEY_SIZE-1] = 0;
             map_value->is_valid = true;
             map_value->is_deleted = false;
             map_value->value = value_type;
@@ -113,9 +116,10 @@ MapValue* init_char_map_var(const char key[], const char value[], const void* ma
 
         if (!map_value->is_valid) {
             ValueType value_type = {false, false, false, true, 0, 0, false, "\0"};
-            strncpy(value_type.char_value, value, 7);
-            value_type.char_value[7] = 0;
-            strcpy(map_value->key, key);
+            strncpy(value_type.char_value, value, HASHMAP_STRING_SIZE-1);
+            value_type.char_value[HASHMAP_STRING_SIZE-1] = 0;
+            strncpy(map_value->key, key, HASHMAP_KEY_SIZE-1);
+            map_value->key[HASHMAP_KEY_SIZE-1] = 0;
             map_value->is_valid = true;
             map_value->is_deleted = false;
             map_value->value = value_type;
@@ -198,6 +202,12 @@ void init_map(const void* map_start_addr, const int element_count) {
     while (i < element_count) {
         map_addr[i].is_valid = false;
         map_addr[i].is_deleted = false;
+
+        map_addr[i].value.is_int = false;
+        map_addr[i].value.is_float = false;
+        map_addr[i].value.is_bool = false;
+        map_addr[i].value.is_char = false;
+
         i++;
     }
 }

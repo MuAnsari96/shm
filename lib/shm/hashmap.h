@@ -3,6 +3,9 @@
 
 #include <stdbool.h>
 
+#define HASHMAP_STRING_SIZE 8
+#define HASHMAP_KEY_SIZE 16
+
 // GENERIC HASHAMP STUFF
 // This module provides a generic API for hashmap operations given a memory buffer we want to use
 
@@ -17,11 +20,11 @@ typedef struct ValueType {
     int int_value;
     float float_value;
     bool bool_value;
-    char char_value[8];
+    char char_value[HASHMAP_STRING_SIZE];
 } ValueType;
 
 typedef struct MapValue {
-    char key[16];
+    char key[HASHMAP_KEY_SIZE];
     bool is_valid;
     bool is_deleted;
     ValueType value;

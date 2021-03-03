@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include <string.h>
 
 #include "hashmap.h"
 #include "shm.h"
@@ -104,8 +105,8 @@ bool set_char_value(const char key[], const char value[]) {
         if (!map_value->value.is_char) {
             return false;
         }
-        // TODO Bad, should be strcpy
-        //map_value->value.char_value = value;
+        strncpy(map_value->value.char_value, value, HASHMAP_STRING_SIZE-1);
+        map_value->value.char_value[HASHMAP_STRING_SIZE-1] = 0;
         return true;
     }
 
@@ -120,8 +121,8 @@ bool set_char_value(const char key[], const char value[]) {
         if (!map_value->value.is_char) {
             return false;
         }
-        // TODO Bad, should be strcpy
-        //map_value->value.char_value = value;
+        strncpy(map_value->value.char_value, value, HASHMAP_STRING_SIZE-1);
+        map_value->value.char_value[HASHMAP_STRING_SIZE-1] = 0;
         return true;
     }
 
