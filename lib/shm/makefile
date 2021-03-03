@@ -38,28 +38,4 @@ reset_shm:
 clean: 
 	rm -f *.out *.o *.so *.gch test/*.out /dev/shm/ROBOSHM
 
-.PHONY: writer
-writer: libshm.so writer.c
-	gcc -o writer.out -I. writer.c -L. -lshm -lrt -lpthread -Werror
-
-.PHONY: reader
-reader: libshm.so reader.c
-	gcc -o reader.out -I./ reader.c -L./ -lshm -lrt -lpthread -Werror
-
-.PHONY: run_reader
-run_reader:
-	LD_LIBRARY_PATH=. ./reader.out
-
-.PHONY: run_writer
-run_writer:
-	LD_LIBRARY_PATH=. ./writer.out
-
-.PHONY: full_run_reader
-full_run_reader: reader
-	LD_LIBRARY_PATH=. ./reader
-
-.PHONY: full_run_writer
-full_run_writer: writer
-	LD_LIBRARY_PATH=. ./writer
-
 .PHONY: all
