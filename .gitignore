@@ -3,3 +3,4 @@
 *.so
 *.gch
 *.out
+*__pycache__/
