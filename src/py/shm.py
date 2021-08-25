@@ -1,5 +1,5 @@
 import ctypes
-import libshm_wrapper as libshm
+import _libshm_wrapper as libshm
 
 class SharedMemoryHandle():
 
