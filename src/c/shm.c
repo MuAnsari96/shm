@@ -27,13 +27,13 @@ void* shm_addr() {
         return shm_addr_p;
     }
 
-    int lockfile = open("/tmp/roboshm.init.lock", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+    int lockfile = open("/tmp/roboshm.init.lock", O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
     if (lockfile == -1) {
         printf("Encountered error acquiring lockfile. Errcode %d\n", errno);
     }
     flock(lockfile, LOCK_EX);
 
-    shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR);
+    shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
     if (shm_fd_ != -1) { 
         // TODO Factor out into an init
         int rc = ftruncate(shm_fd_, shm_effective_size());
@@ -52,7 +52,7 @@ void* shm_addr() {
 
     }
     else if (errno == EEXIST) {
-        shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR);
+        shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
 
         shm_addr_p = mmap(NULL, shm_effective_size(), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
         printf("Shm already exists, using that instance\n");

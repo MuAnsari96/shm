@@ -1,4 +1,4 @@
-all: libshm.so
+all: libshm.so 
 
 .PHONY: libshm.so
 libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
@@ -7,6 +7,13 @@ libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
 	gcc -std=gnu99 -c -fPIC -Werror shm_hashmap.c shm_hashmap.h
 	gcc -fPIC -shared -o libshm.so shm.o hashmap.o shm_hashmap.o
 	rm -f /dev/shm/ROBOSHM
+
+.PHONY: libshm.a
+libshm.a: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
+	gcc -std=gnu99 -c -Werror shm.c shm.h
+	gcc -std=gnu99 -c -Werror hashmap.c hashmap.h
+	gcc -std=gnu99 -c -Werror shm_hashmap.c shm_hashmap.h
+	ar rcs libshm.a shm.o hashmap.o shm_hashmap.o
 
 .PHONY: hashmap_test
 hashmap_test: libshm.so
@@ -33,9 +40,10 @@ run_test: run_hashmap_test run_shm_hashmap_test
 .PHONY: reset_shm
 reset_shm:
 	rm -f /dev/shm/ROBOSHM
+	rm -f /tmp/roboshm.init.lock
 
 .PHONY: clean
 clean: 
-	rm -f *.out *.o *.so *.gch test/*.out /dev/shm/ROBOSHM
+	rm -f *.out *.o *.so *.gch test/*.out /dev/shm/ROBOSHM /tmp/roboshm.init.lock
 
 .PHONY: all
