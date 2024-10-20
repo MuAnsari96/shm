@@ -31,10 +31,12 @@ void* shm_addr() {
     if (lockfile == -1) {
         printf("Encountered error acquiring lockfile. Errcode %d\n", errno);
     }
+    fchmod(lockfile, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
     flock(lockfile, LOCK_EX);
 
     shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
     if (shm_fd_ != -1) { 
+        fchmod(shm_fd_, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
         // TODO Factor out into an init
         int rc = ftruncate(shm_fd_, shm_effective_size());
         if (rc == -1) {
@@ -42,6 +44,10 @@ void* shm_addr() {
         }
 
         shm_addr_p = mmap(NULL, shm_effective_size(), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
+        if (shm_addr_p == MAP_FAILED) {
+            printf("Encountered error mmap'ing shm. Errcode: %d\n", errno);
+            return NULL;
+        }
         
         pthread_mutex_t* mutex = (pthread_mutex_t*) shm_addr_p;
         pthread_mutexattr_t* mutexattr = (pthread_mutexattr_t*) (((char*)shm_addr_p) + sizeof(pthread_mutex_t));
@@ -53,8 +59,16 @@ void* shm_addr() {
     }
     else if (errno == EEXIST) {
         shm_fd_ = shm_open(SHM_NAME, O_CREAT | O_RDWR, S_IRUSR | S_IWUSR | S_IROTH | S_IWOTH);
+        if (shm_fd_ == -1) {
+            printf("Encountered error openinng shm file. Errcode: %d\n", errno);
+            return NULL;
+        }
 
         shm_addr_p = mmap(NULL, shm_effective_size(), PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd_, 0);
+        if (shm_addr_p == MAP_FAILED) {
+            printf("Encountered error mmap'ing shm. Errcode: %d\n", errno);
+            return NULL;
+        }
         printf("Shm already exists, using that instance\n");
     }
     else {
