@@ -44,6 +44,6 @@ reset_shm:
 
 .PHONY: clean
 clean: 
-	rm -f *.out *.o *.so *.gch test/*.out /dev/shm/ROBOSHM /tmp/roboshm.init.lock
+	rm -f *.out *.o *.so *.a *.gch test/*.out /dev/shm/ROBOSHM /tmp/roboshm.init.lock
 
 .PHONY: all
