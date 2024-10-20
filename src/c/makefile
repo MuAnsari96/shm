@@ -8,8 +8,8 @@ libshm.so: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
 	gcc -fPIC -shared -o libshm.so shm.o hashmap.o shm_hashmap.o
 	rm -f /dev/shm/ROBOSHM
 
-.PHONY: libshm.a
-libshm.a: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
+.PHONY: static
+static: shm.c shm.h hashmap.c hashmap.h shm_hashmap.c shm_hashmap.h
 	gcc -std=gnu99 -c -Werror shm.c shm.h
 	gcc -std=gnu99 -c -Werror hashmap.c hashmap.h
 	gcc -std=gnu99 -c -Werror shm_hashmap.c shm_hashmap.h
